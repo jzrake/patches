@@ -16,9 +16,12 @@ std::string patches2d::to_string(Database::Index index)
 
     switch (std::get<3>(index))
     {
-        case Field::conserved: f = "conserved"; break;
+        case Field::cell_volume: f = "cell_volume"; break;
         case Field::cell_coords: f = "cell_coords"; break;
         case Field::vert_coords: f = "vert_coords"; break;
+        case Field::face_areas_i: f = "face_areas_i"; break;
+        case Field::face_areas_j: f = "face_areas_j"; break;
+        case Field::conserved: f = "conserved"; break;
     }
     return std::to_string(p) + ":" + std::to_string(i) + "-" + std::to_string(j) + "/" + f;
 }
@@ -73,11 +76,11 @@ void Database::commit(Index index, Array data, double rk_factor)
     }
 }
 
-Database::Array Database::checkout(Index index, int guard) const
+Database::Array Database::fetch(Index index, int guard) const
 {
     if (location(index) != MeshLocation::cell)
     {
-        throw std::invalid_argument("Can only checkout cell data (for now)");
+        throw std::invalid_argument("Can only fetch cell data (for now)");
     }
 
     auto _     = nd::axis::all();
@@ -203,6 +206,8 @@ std::array<int, 3> Database::expected_shape(Index index) const
     {
         case MeshLocation::cell: return {ni + 0, nj + 0, num_fields(index)};
         case MeshLocation::vert: return {ni + 1, nj + 1, num_fields(index)};
+        case MeshLocation::face_i: return {ni + 1, nj + 0, num_fields(index)};
+        case MeshLocation::face_j: return {ni + 0, nj + 1, num_fields(index)};
     }
 }
 

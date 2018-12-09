@@ -16,8 +16,11 @@ namespace patches2d {
     // ========================================================================
     enum class Field
     {
+        cell_volume,
         cell_coords,
         vert_coords,
+        face_areas_i,
+        face_areas_j,
         conserved,
     };
 
@@ -27,6 +30,8 @@ namespace patches2d {
     {
         vert,
         cell,
+        face_i,
+        face_j,
     };
 
 
@@ -86,7 +91,7 @@ public:
      * given number of guard zones. If no data exists at that index, or the
      * data has the wrong size, an exception is thrown.
      */
-    Array checkout(Index index, int guard=0) const;
+    Array fetch(Index index, int guard=0) const;
 
     /** Return all patches registered for the given field. */
     std::map<Index, Array> all(Field which) const;
