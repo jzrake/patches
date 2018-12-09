@@ -36,6 +36,13 @@ namespace patches2d {
 
 
     // ========================================================================
+    enum class PatchBoundary
+    {
+        il, ir, jl, jr,
+    };
+
+
+    // ========================================================================
     struct FieldDescriptor
     {
         FieldDescriptor(int num_fields, MeshLocation location);
@@ -59,8 +66,28 @@ public:
     using Array = nd::array<double, 3>;
 
 
+    /**
+     * A callback to be invoked when a target patch's guard zone region cannot
+     * be found in neighboring patches. The callback is invoked with the index
+     * of the patch whose boundary values are required, a flag indicating
+     * which edge of that patch is needed, the depth of the guard zone region
+     * needed, and the data currently associated with the patch. Use the
+     * set_boundary_value method to supply the callback. If no callback is
+     * supplied and a call to fetch would require it, then an exception is
+     * raised.
+     */
+    using BoundaryValue = std::function<Array(Index, PatchBoundary, int size, const Array&)>;
+
+
     // ========================================================================
     Database(int ni, int nj, Header header);
+
+
+    /**
+     * Set the callback to be invoked when a target patch's guard zone region
+     * cannot be found in neighboring patches.
+     */
+    void set_boundary_value(BoundaryValue);
 
 
     /**
@@ -177,6 +204,7 @@ private:
     int nj;
     Header header;
     std::map<Index, Array> patches;
+    BoundaryValue boundary_value = nullptr;
 };
 
 

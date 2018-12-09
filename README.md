@@ -45,6 +45,6 @@ database.commit(advance(my_array, dt), rk_parameter=0.5)
 
 
 ## Status
-Currently, the library supports a few simple 2D hydro codes that require static mesh refinement. There is no 3D support yet (although adding it is trivial). User-defined prolongation and restriction operators will be added soon, as will a boundary conditions callback to be invoked where guard zone queries cannot be fulfilled. Currently data can be stored within cells, at mesh vertices, and on cell faces. Support for storage on edges will be added soon. So-called flux registers can be emulated by storing data on faces (or edges if solving MHD equations with constrained transport).
+Currently, the library supports a few simple 2D hydro codes that require static mesh refinement. There is no 3D support yet (although adding it is trivial). User-defined prolongation and restriction operators will be added soon. Currently data can be stored within cells, at mesh vertices, and on cell faces. Support for storage on edges will be added soon. So-called flux registers can be emulated by storing data on faces (or edges if solving MHD equations with constrained transport).
 
-Support for MPI applications is planned. This will work by adding a `Database::fetch_async` method which returns a `std::promise<Array>` instead of an `Array` directly. However the actual code to place and fulfill remote queries is outside the scope of this module, and will be delegated to a user calllback.
+Support for MPI applications is planned. This will work by adding a `Database::fetch_async` method which returns a `std::promise<Array>` instead of an `Array` directly. However the actual code to place and fulfill remote queries is outside the scope of this module, and will be delegated to a user callback.

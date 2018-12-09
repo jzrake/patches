@@ -47,6 +47,11 @@ Database::Database(int ni, int nj, Header header)
 {
 }
 
+void Database::set_boundary_value(BoundaryValue b)
+{
+    boundary_value = b;
+}
+
 void Database::insert(Index index, Array data)
 {
     patches[index].become(check_shape(data, index).copy());
@@ -85,7 +90,7 @@ Database::Array Database::fetch(Index index, int ngil, int ngir, int ngjl, int n
 {
     if (location(index) != MeshLocation::cell)
     {
-        throw std::invalid_argument("Can only fetch cell data (for now)");
+        throw std::invalid_argument("can only fetch cell data (for now)");
     }
 
     auto _     = nd::axis::all();
@@ -103,12 +108,51 @@ Database::Array Database::fetch(Index index, int ngil, int ngir, int ngjl, int n
     auto Rj = std::make_tuple(i, j + 1, p, f);
     auto Lj = std::make_tuple(i, j - 1, p, f);
 
-    if (ngir > 0) res.select(_|mi-ngir|mi, _|ngjl|nj+ngjl, _) = locate(Ri).select(_|0|ngir, _, _);
-    if (ngjr > 0) res.select(_|ngil|ni+ngil, _|mj-ngjr|mj, _) = locate(Rj).select(_, _|0|ngjr, _);
-    if (ngil > 0) res.select(_|0|ngil, _|ngjl|nj+ngjl, _) = locate(Li).select(_|ni-ngil|ni, _, _);
-    if (ngjl > 0) res.select(_|ngil|ni+ngil, _|0|ngjl, _) = locate(Lj).select(_, _|nj-ngjl|nj, _);
-
     res.select(_|ngil|ni+ngil, _|ngjl|nj+ngjl, _) = patches.at(index);
+
+    // i-left boundary
+    // ========================================================================
+    if (ngil > 0)
+    {
+        auto neighbor = locate(Li);
+        auto bv = neighbor.empty()
+        ? boundary_value(index, PatchBoundary::il, ngil, patches.at(index))
+        : neighbor.select(_|ni-ngil|ni, _, _);
+        res.select(_|0|ngil, _|ngjl|nj+ngjl, _) = bv;
+    }
+
+    // i-right boundary
+    // ========================================================================
+    if (ngir > 0)
+    {
+        auto neighbor = locate(Ri);
+        auto bv = neighbor.empty()
+        ? boundary_value(index, PatchBoundary::ir, ngir, patches.at(index))
+        : neighbor.select(_|0|ngir, _, _);
+        res.select(_|mi-ngir|mi, _|ngjl|nj+ngjl, _) = bv;
+    }
+
+    // j-left boundary
+    // ========================================================================
+    if (ngjl > 0)
+    {
+        auto neighbor = locate(Lj);
+        auto bv = neighbor.empty()
+        ? boundary_value(index, PatchBoundary::jl, ngjl, patches.at(index))
+        : neighbor.select(_, _|nj-ngjl|nj, _);
+        res.select(_|ngil|ni+ngil, _|0|ngjl, _) = bv;
+    }
+
+    // j-right boundary
+    // ========================================================================
+    if (ngjr > 0)
+    {
+        auto neighbor = locate(Rj);
+        auto bv = neighbor.empty()
+        ? boundary_value(index, PatchBoundary::jr, ngjr, patches.at(index))
+        : neighbor.select(_, _|0|ngjr, _);
+        res.select(_|ngil|ni+ngil, _|mj-ngjr|mj, _) = bv;
+    }
 
     return res;
 }
@@ -245,18 +289,7 @@ nd::array<double, 3> Database::locate(Index index) const
         return restriction(tile(refine(index)));
     }
 
-    // Return a value based on some physical boundary conditions
-
-    auto _ = nd::axis::all();
-    auto res = nd::array<double, 3>(ni, nj, num_fields(index));
-
-    res.select(_, _, 0) = 0.1;
-    res.select(_, _, 1) = 0.0;
-    res.select(_, _, 2) = 0.0;
-    res.select(_, _, 3) = 0.0;
-    res.select(_, _, 4) = 0.125;
-
-    return res;
+    return nd::array<double, 3>();
 }
 
 nd::array<double, 3> Database::quadrant(const nd::array<double, 3>& A, int I, int J) const
