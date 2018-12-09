@@ -19,8 +19,8 @@ std::string patches2d::to_string(Database::Index index)
         case Field::cell_volume: f = "cell_volume"; break;
         case Field::cell_coords: f = "cell_coords"; break;
         case Field::vert_coords: f = "vert_coords"; break;
-        case Field::face_areas_i: f = "face_areas_i"; break;
-        case Field::face_areas_j: f = "face_areas_j"; break;
+        case Field::face_area_i: f = "face_area_i"; break;
+        case Field::face_area_j: f = "face_area_j"; break;
         case Field::conserved: f = "conserved"; break;
     }
     return std::to_string(p) + ":" + std::to_string(i) + "-" + std::to_string(j) + "/" + f;
@@ -78,35 +78,50 @@ void Database::commit(Index index, Array data, double rk_factor)
 
 Database::Array Database::fetch(Index index, int guard) const
 {
+    return fetch(index, guard, guard, guard, guard);
+}
+
+Database::Array Database::fetch(Index index, int ngil, int ngir, int ngjl, int ngjr) const
+{
     if (location(index) != MeshLocation::cell)
     {
         throw std::invalid_argument("Can only fetch cell data (for now)");
     }
 
     auto _     = nd::axis::all();
-    auto ng    = guard;
-    auto shape = std::array<int, 3>{ni + 2 * ng, nj + 2 * ng, 5};
+    auto mi    = ni + ngil + ngir;
+    auto mj    = nj + ngjl + ngjr;
+    auto shape = std::array<int, 3>{mi, mj, num_fields(index)};
     auto res   = nd::array<double, 3>(shape);
 
     auto i = std::get<0>(index);
     auto j = std::get<1>(index);
     auto p = std::get<2>(index);
     auto f = std::get<3>(index);
-
     auto Ri = std::make_tuple(i + 1, j, p, f);
     auto Li = std::make_tuple(i - 1, j, p, f);
     auto Rj = std::make_tuple(i, j + 1, p, f);
     auto Lj = std::make_tuple(i, j - 1, p, f);
 
-    res.select(_|ng|ni+ng, _|ng|nj+ng, _) = patches.at(index);
+    if (ngir > 0) res.select(_|mi-ngir|mi, _|ngjl|nj+ngjl, _) = locate(Ri).select(_|0|ngir, _, _);
+    if (ngjr > 0) res.select(_|ngil|ni+ngil, _|mj-ngjr|mj, _) = locate(Rj).select(_, _|0|ngjr, _);
+    if (ngil > 0) res.select(_|0|ngil, _|ngjl|nj+ngjl, _) = locate(Li).select(_|ni-ngil|ni, _, _);
+    if (ngjl > 0) res.select(_|ngil|ni+ngil, _|0|ngjl, _) = locate(Lj).select(_, _|nj-ngjl|nj, _);
 
-    res.select(_|ni+ng|ni+2*ng, _|ng|nj+ng, _) = locate(Ri).select(_|0|ng, _, _);
-    res.select(_|ng|ni+ng, _|nj+ng|nj+2*ng, _) = locate(Rj).select(_, _|0|ng, _);
-
-    res.select(_|0|ng, _|ng|nj+ng, _) = locate(Li).select(_|ni-ng|ni, _, _);
-    res.select(_|ng|ni+ng, _|0|ng, _) = locate(Lj).select(_, _|nj-ng|nj, _);
+    res.select(_|ngil|ni+ngil, _|ngjl|nj+ngjl, _) = patches.at(index);
 
     return res;
+}
+
+const Database::Array& Database::at(Index index) const
+{
+    return patches.at(index);
+}
+
+const Database::Array& Database::at(Index index, Field which) const
+{
+    std::get<3>(index) = which;
+    return patches.at(index);
 }
 
 std::map<Database::Index, Database::Array> Database::all(Field which) const

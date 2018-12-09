@@ -19,8 +19,8 @@ namespace patches2d {
         cell_volume,
         cell_coords,
         vert_coords,
-        face_areas_i,
-        face_areas_j,
+        face_area_i,
+        face_area_j,
         conserved,
     };
 
@@ -88,10 +88,41 @@ public:
 
     /**
      * Return a deep copy of the data at the patch index, padded with the
-     * given number of guard zones. If no data exists at that index, or the
-     * data has the wrong size, an exception is thrown.
+     * given number of guard zones at each edge of the array. If no data
+     * exists at that index, an exception is thrown.
+     *
+     *          jl
+     *      +--------+
+     *      |        |
+     *  il  |        |  ir
+     *      |        |
+     *      +--------+
+     *          jr
+     *
      */
-    Array fetch(Index index, int guard=0) const;
+    Array fetch(Index index, int ngil, int ngir, int ngjl, int ngjr) const;
+
+
+    /**
+     * Same as above, where the number of guard zones to be fetched is the
+     * same on each of the patch boundaries.
+     */
+    Array fetch(Index index, int guard) const;
+
+
+    /**
+     * Return a constant reference to the data at the given patch index. If no
+     * data exists at that index, an exception is thrown.
+     */
+    const Array& at(Index index) const;
+
+
+    /**
+     * Same as above, except discards the index field and uses the given field
+     * instead.
+     */
+    const Array& at(Index index, Field which) const;
+
 
     /** Return all patches registered for the given field. */
     std::map<Index, Array> all(Field which) const;
