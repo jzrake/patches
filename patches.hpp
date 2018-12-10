@@ -68,15 +68,30 @@ public:
 
     /**
      * A callback to be invoked when a target patch's guard zone region cannot
-     * be found in neighboring patches. The callback is invoked with the index
-     * of the patch whose boundary values are required, a flag indicating
-     * which edge of that patch is needed, the depth of the guard zone region
-     * needed, and the data currently associated with the patch. Use the
-     * set_boundary_value method to supply the callback. If no callback is
-     * supplied and a call to fetch would require it, then an exception is
-     * raised.
+     * be calculated from its neighbor patches. The callback receives the
+     * index of the target patch (the one whose boundary values are required),
+     * a flag indicating which edge of that patch is needed, the depth of the
+     * guard zone region, and the data currenly in the target patch. The
+     * callback must return an array whose shape matches the patch data, but
+     * having the number of guard zones (depth) in the off-bounds axis. For
+     * example, if edge = PatchBoundary::il and depth = 2, then the callback
+     * must return an array with shape [2, data.shape(1), data.shape(2)].
+     * 
+     * Use the set_boundary_value method to set the callback. If no callback
+     * has been supplied and a call to fetch would require it, then an
+     * exception is raised.
      */
-    using BoundaryValue = std::function<Array(Index, PatchBoundary, int size, const Array&)>;
+    using BoundaryValue = std::function<Array(
+        
+        Index index,        /**< Index of the target patch */
+
+        PatchBoundary edge, /**< Which edge of that patch to return guard zones for */
+
+        int depth,          /**< The number of guard zones needed */
+
+        const Array& patch  /**< The data in the target patch */
+
+        )>;
 
 
     // ========================================================================
@@ -213,4 +228,5 @@ private:
 // ============================================================================
 namespace patches2d {
     std::string to_string(Database::Index index);
+    std::string to_string(Database::Index index, std::string field_name);
 }

@@ -9,9 +9,6 @@ using namespace patches2d;
 // ============================================================================
 std::string patches2d::to_string(Database::Index index)
 {
-    auto i = std::get<0>(index);
-    auto j = std::get<1>(index);
-    auto p = std::get<2>(index);
     auto f = std::string();
 
     switch (std::get<3>(index))
@@ -23,7 +20,15 @@ std::string patches2d::to_string(Database::Index index)
         case Field::face_area_j: f = "face_area_j"; break;
         case Field::conserved: f = "conserved"; break;
     }
-    return std::to_string(p) + ":" + std::to_string(i) + "-" + std::to_string(j) + "/" + f;
+    return to_string(index, f);
+}
+
+std::string patches2d::to_string(Database::Index index, std::string field_name)
+{
+    auto i = std::get<0>(index);
+    auto j = std::get<1>(index);
+    auto p = std::get<2>(index);
+    return std::to_string(p) + "." + std::to_string(i) + "-" + std::to_string(j) + "/" + field_name;
 }
 
 
