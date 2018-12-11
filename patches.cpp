@@ -209,11 +209,13 @@ std::size_t Database::num_cells(Field which) const
 void Database::print(std::ostream& os) const
 {
     os << std::string(52, '=') << "\n";
-    os << "Mesh patches:\n\n";
+    os << "Database:\n\n";
+    os << "block size: " << ni << " " << nj << "\n";
+    os << "mesh patches:\n\n";
 
     for (const auto& patch : patches)
     {
-        os << to_string(patch.first) << "\n";
+        os << "\t" << to_string(patch.first) << "\n";
     }
     os << "\n";
 }
