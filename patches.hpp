@@ -169,23 +169,30 @@ public:
     /** Return all patches registered for the given field. */
     std::map<Index, Array> all(Field which) const;
 
+
     /** Return an iterator to the beginning of the container of patches. */
     auto begin() const { return patches.begin(); }
+
 
     /** Return an iterator to the end of the container of patches. */
     auto end() const { return patches.end(); }
 
+
     /** Return the number of patches. */
     std::size_t size() const { return patches.size(); }
+
 
     /** Return the number of patches associated with the given field. */
     std::size_t count(Field which) const;
 
+
     /** Return the total number of cells associated with the given field. */
     std::size_t num_cells(Field which) const;
 
+
     /** Print a description of the patch locations. */
     void print(std::ostream& os) const;
+
 
 private:
     // ========================================================================
