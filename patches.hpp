@@ -118,6 +118,10 @@ public:
     auto erase(Index index);
 
 
+    /** Clear all of the stored patches from the database. */
+    void clear();
+
+
     /**
      * Merge data into the database at index, with the given weighting factor.
      * Setting rk_factor=0.0 corresponds to overwriting the existing data.
@@ -236,4 +240,5 @@ private:
 namespace patches2d {
     std::string to_string(Database::Index index);
     std::string to_string(Database::Index index, std::string field_name);
+    Database::Index parse_index(std::string str);
 }

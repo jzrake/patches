@@ -31,6 +31,27 @@ std::string patches2d::to_string(Database::Index index, std::string field_name)
     return std::to_string(p) + "." + std::to_string(i) + "-" + std::to_string(j) + "/" + field_name;
 }
 
+Database::Index patches2d::parse_index(std::string str)
+{
+    auto dot   = str.find('.');
+    auto dash  = str.find('-');
+    auto slash = str.find('/');
+
+    int level = std::stoi(str.substr(0, dot));
+    int i     = std::stoi(str.substr(dot  + 1, dash));
+    int j     = std::stoi(str.substr(dash + 1, slash));
+    std::string name = str.substr(slash + 1);
+
+    if (name == "cell_volume") return std::make_tuple(level, i, j, Field::cell_volume);
+    if (name == "cell_coords") return std::make_tuple(level, i, j, Field::cell_coords);
+    if (name == "vert_coords") return std::make_tuple(level, i, j, Field::vert_coords);
+    if (name == "face_area_i") return std::make_tuple(level, i, j, Field::face_area_i);
+    if (name == "face_area_j") return std::make_tuple(level, i, j, Field::face_area_j);
+    if (name == "conserved") return std::make_tuple(level, i, j, Field::conserved);
+
+    throw std::invalid_argument("unrecognized field name " + name);
+}
+
 
 
 
@@ -65,6 +86,11 @@ void Database::insert(Index index, Array data)
 auto Database::erase(Index index)
 {
     return patches.erase(index);
+}
+
+void Database::clear()
+{
+    patches.clear();
 }
 
 void Database::commit(Index index, Array data, double rk_factor)
