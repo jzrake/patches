@@ -188,6 +188,42 @@ Database::Array Database::fetch(Index index, int ngil, int ngir, int ngjl, int n
     return res;
 }
 
+Database::Array Database::assemble(int i0, int i1, int j0, int j1, int level, Field field) const
+{
+    auto _ = nd::axis::all();
+    int mi, mj;
+
+    switch (header.at(field).location)
+    {
+        case MeshLocation::cell  : mi = (i1 - i0) * ni + 0; mj = (j1 - j0) * nj + 0; break;
+        case MeshLocation::vert  : mi = (i1 - i0) * ni + 1; mj = (j1 - j0) * nj + 1; break;
+        case MeshLocation::face_i: mi = (i1 - i0) * ni + 1; mj = (j1 - j0) * nj + 0; break;
+        case MeshLocation::face_j: mi = (i1 - i0) * ni + 0; mj = (j1 - j0) * nj + 1; break;
+    }
+
+    auto res = Array(mi, mj, header.at(field).num_fields);
+
+    for (int i = i0; i < i1; ++i)
+    {
+        for (int j = j0; j < j1; ++j)
+        {
+            int di, dj;
+
+            switch (header.at(field).location)
+            {
+                case MeshLocation::cell  : di = (i == i1 - 1) * 0; dj = (j == j1 - 1) * 0; break;
+                case MeshLocation::vert  : di = (i == i1 - 1) * 1; dj = (j == j1 - 1) * 1; break;
+                case MeshLocation::face_i: di = (i == i1 - 1) * 1; dj = (j == j1 - 1) * 0; break;
+                case MeshLocation::face_j: di = (i == i1 - 1) * 0; dj = (j == j1 - 1) * 1; break;
+            }
+
+            const auto& patch = patches.at(std::make_tuple(i, j, level, field));
+            res.select(_|i*ni|(i+1)*ni+di, _|j*nj|(j+1)*nj+dj, _) = patch.select(_|0|ni+di, _|0|nj+dj, _);
+        }
+    }
+    return res;
+}
+
 const Database::Array& Database::at(Index index) const
 {
     return patches.at(index);

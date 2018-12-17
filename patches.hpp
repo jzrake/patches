@@ -157,6 +157,20 @@ public:
 
 
     /**
+     * Return an array spanning a rectangular range of blocks at a fixed
+     * level. All of the enclosed patches must exist in the database. The
+     * upper indexes are non-inclusive. Note that vertex and face data
+     * formally has redundancies at the patch boundaries (the right faces of
+     * patch i and the left faces of patch i + 1 are the same physical
+     * things). This function does not make any attempt to reconcile
+     * differences between the data at the redundant locations (it replaces a
+     * patch's data values on the right if they can be read from the right
+     * neighbor patch), so it's up to you to make sure it's consistent.
+     */
+    Array assemble(int i0, int i1, int j0, int j1, int level, Field field) const;
+
+
+    /**
      * Return a constant reference to the data at the given patch index. If no
      * data exists at that index, an exception is thrown.
      */
