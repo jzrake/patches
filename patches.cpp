@@ -42,12 +42,12 @@ Database::Index patches2d::parse_index(std::string str)
     int j     = std::stoi(str.substr(dash + 1, slash));
     std::string name = str.substr(slash + 1);
 
-    if (name == "cell_volume") return std::make_tuple(level, i, j, Field::cell_volume);
-    if (name == "cell_coords") return std::make_tuple(level, i, j, Field::cell_coords);
-    if (name == "vert_coords") return std::make_tuple(level, i, j, Field::vert_coords);
-    if (name == "face_area_i") return std::make_tuple(level, i, j, Field::face_area_i);
-    if (name == "face_area_j") return std::make_tuple(level, i, j, Field::face_area_j);
-    if (name == "conserved") return std::make_tuple(level, i, j, Field::conserved);
+    if (name == "cell_volume") return std::make_tuple(i, j, level, Field::cell_volume);
+    if (name == "cell_coords") return std::make_tuple(i, j, level, Field::cell_coords);
+    if (name == "vert_coords") return std::make_tuple(i, j, level, Field::vert_coords);
+    if (name == "face_area_i") return std::make_tuple(i, j, level, Field::face_area_i);
+    if (name == "face_area_j") return std::make_tuple(i, j, level, Field::face_area_j);
+    if (name == "conserved")   return std::make_tuple(i, j, level, Field::conserved);
 
     throw std::invalid_argument("unrecognized field name " + name);
 }
