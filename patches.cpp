@@ -191,7 +191,7 @@ Database::Array Database::fetch(Index index, int ngil, int ngir, int ngjl, int n
 Database::Array Database::assemble(int i0, int i1, int j0, int j1, int level, Field field) const
 {
     auto _ = nd::axis::all();
-    int mi, mj;
+    int mi = 0, mj = 0;
 
     switch (header.at(field).location)
     {
@@ -207,7 +207,7 @@ Database::Array Database::assemble(int i0, int i1, int j0, int j1, int level, Fi
     {
         for (int j = j0; j < j1; ++j)
         {
-            int di, dj;
+            int di = 0, dj = 0;
 
             switch (header.at(field).location)
             {
@@ -337,6 +337,7 @@ std::array<int, 3> Database::expected_shape(Index index) const
         case MeshLocation::face_i: return {ni + 1, nj + 0, num_fields(index)};
         case MeshLocation::face_j: return {ni + 0, nj + 1, num_fields(index)};
     }
+    throw;
 }
 
 nd::array<double, 3> Database::locate(Index index) const
