@@ -1,4 +1,6 @@
 #include <ostream>
+#include <vector>
+#include <map>
 #include "patches.hpp"
 
 using namespace patches2d;
@@ -7,20 +9,33 @@ using namespace patches2d;
 
 
 // ============================================================================
+std::string patches2d::to_string(MeshLocation location)
+{
+    switch (location)
+    {
+        case MeshLocation::vert: return "vert";
+        case MeshLocation::cell: return "cell";
+        case MeshLocation::face_i: return "face_i";
+        case MeshLocation::face_j: return "face_j";
+    }
+}
+
+std::string patches2d::to_string(Field field)
+{
+    switch (field)
+    {
+        case Field::cell_volume: return "cell_volume";
+        case Field::cell_coords: return "cell_coords";
+        case Field::vert_coords: return "vert_coords";
+        case Field::face_area_i: return "face_area_i";
+        case Field::face_area_j: return "face_area_j";
+        case Field::conserved: return "conserved";
+    }
+}
+
 std::string patches2d::to_string(Database::Index index)
 {
-    auto f = std::string();
-
-    switch (std::get<3>(index))
-    {
-        case Field::cell_volume: f = "cell_volume"; break;
-        case Field::cell_coords: f = "cell_coords"; break;
-        case Field::vert_coords: f = "vert_coords"; break;
-        case Field::face_area_i: f = "face_area_i"; break;
-        case Field::face_area_j: f = "face_area_j"; break;
-        case Field::conserved: f = "conserved"; break;
-    }
-    return to_string(index, f);
+    return to_string(index, to_string(std::get<3>(index)));
 }
 
 std::string patches2d::to_string(Database::Index index, std::string field_name)
@@ -31,25 +46,36 @@ std::string patches2d::to_string(Database::Index index, std::string field_name)
     return std::to_string(p) + "." + std::to_string(i) + "-" + std::to_string(j) + "/" + field_name;
 }
 
+MeshLocation patches2d::parse_location(std::string str)
+{
+    if (str == "vert") return MeshLocation::vert;
+    if (str == "cell") return MeshLocation::cell;
+    if (str == "face_i") return MeshLocation::face_i;
+    if (str == "face_j") return MeshLocation::face_j;
+    throw std::invalid_argument("unknown location: " + str);
+}
+
+Field patches2d::parse_field(std::string str)
+{
+    if (str == "cell_volume") return Field::cell_volume;
+    if (str == "cell_coords") return Field::cell_coords;
+    if (str == "vert_coords") return Field::vert_coords;
+    if (str == "face_area_i") return Field::face_area_i;
+    if (str == "face_area_j") return Field::face_area_j;
+    if (str == "conserved")   return Field::conserved;
+    throw std::invalid_argument("unknown field: " + str);
+}
+
 Database::Index patches2d::parse_index(std::string str)
 {
     auto dot   = str.find('.');
     auto dash  = str.find('-');
     auto slash = str.find('/');
-
-    int level = std::stoi(str.substr(0, dot));
-    int i     = std::stoi(str.substr(dot  + 1, dash));
-    int j     = std::stoi(str.substr(dash + 1, slash));
-    std::string name = str.substr(slash + 1);
-
-    if (name == "cell_volume") return std::make_tuple(i, j, level, Field::cell_volume);
-    if (name == "cell_coords") return std::make_tuple(i, j, level, Field::cell_coords);
-    if (name == "vert_coords") return std::make_tuple(i, j, level, Field::vert_coords);
-    if (name == "face_area_i") return std::make_tuple(i, j, level, Field::face_area_i);
-    if (name == "face_area_j") return std::make_tuple(i, j, level, Field::face_area_j);
-    if (name == "conserved")   return std::make_tuple(i, j, level, Field::conserved);
-
-    throw std::invalid_argument("unrecognized field name " + name);
+    int level  = std::stoi(str.substr(0, dot));
+    int i      = std::stoi(str.substr(dot  + 1, dash));
+    int j      = std::stoi(str.substr(dash + 1, slash));
+    auto field = parse_field(str.substr(slash + 1));
+    return std::make_tuple(i, j, level, field);
 }
 
 
@@ -280,6 +306,34 @@ void Database::print(std::ostream& os) const
         os << "\t" << to_string(patch.first) << "\n";
     }
     os << "\n";
+}
+
+void Database::dump(const Serializer& ser) const
+{
+    ser.write_header(header);
+    ser.write_block_size({ni, nj});
+
+    for (const auto& patch : patches)
+    {
+        ser.write_array(to_string(patch.first), patch.second);
+    }
+}
+
+Database Database::load(const Serializer& ser)
+{
+    auto header = ser.read_header();
+    auto blocks = ser.read_block_size();
+    auto database = Database(blocks[0], blocks[1], header);
+
+    for (auto patch : ser.list_patches())
+    {
+        for (auto field : ser.list_fields(patch))
+        {
+            auto ind = patch + "/" + field;
+            database.insert(parse_index(ind), ser.read_array(ind));
+        }
+    }
+    return database;
 }
 
 

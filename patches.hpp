@@ -1,6 +1,5 @@
 #pragma once
 #include <array>
-#include <map>
 #include "ndarray.hpp"
 
 
@@ -11,6 +10,7 @@ namespace patches2d {
 
 
     class Database;
+    class Serializer;
 
 
     // ========================================================================
@@ -212,6 +212,14 @@ public:
     void print(std::ostream& os) const;
 
 
+    /** Write the database using the given serialization scheme. */
+    void dump(const Serializer&) const;
+
+
+    /** Load a database using the given serialization scheme. */
+    static Database load(const Serializer&);
+
+
 private:
     // ========================================================================
     int num_fields(Index index) const;
@@ -252,7 +260,68 @@ private:
 
 // ============================================================================
 namespace patches2d {
+    std::string to_string(MeshLocation location);
+    std::string to_string(Field field);
     std::string to_string(Database::Index index);
     std::string to_string(Database::Index index, std::string field_name);
+    MeshLocation    parse_location(std::string str);
+    Field           parse_field(std::string str);
     Database::Index parse_index(std::string str);
 }
+
+
+
+
+// ============================================================================
+class patches2d::Serializer
+{
+public:
+    /**
+     * Destructor.
+     */
+    virtual ~Serializer() {}
+
+    /**
+     * This method must return a list of the fields in a given patch. If this
+     * reader is filesystem-based, it probably returns a list of the file
+     * names in the directory for that patch. If it is HDF5, it might return
+     * the names of the datasets in the group for that patch..
+     */
+    virtual std::vector<std::string> list_fields(std::string patch_index) const = 0;
+
+    /**
+     * This method must return a list of the patches in the database.
+     */
+    virtual std::vector<std::string> list_patches() const = 0;
+
+    /**
+     * This method must return an array read from the given location.
+     */
+    virtual nd::array<double, 3> read_array(std::string path) const = 0;
+
+    /**
+     * This method must return the block size (ni, nj) for the database at the
+     * given path.
+     */
+    virtual std::array<int, 2> read_block_size() const = 0;
+
+    /**
+     * This method must return the header for the database at the given path.
+     */
+    virtual Database::Header read_header() const = 0;
+
+    /**
+     * This method must write an array of patch data to the given location.
+     */
+    virtual void write_array(std::string path, const nd::array<double, 3>& patch) const = 0;
+
+    /**
+     * This method must write a header to the given location.
+     */
+    virtual void write_header(Database::Header header) const = 0;
+
+    /**
+     * This method must write a block size (ni, nj) to the given location.
+     */
+    virtual void write_block_size(std::array<int, 2> block_size) const = 0;
+};
