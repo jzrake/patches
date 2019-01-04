@@ -1,3 +1,4 @@
+#include "JuceHeader.h"
 #include <array>
 #include <vector>
 #include <string>
@@ -9,7 +10,8 @@
 class FileSystemSerializer : public patches2d::Serializer
 {
 public:
-    FileSystemSerializer (std::string chkpt);
+    static bool looksLikeDatabase (juce::File path);
+    FileSystemSerializer (juce::File chkpt);
     std::vector<std::string> list_fields (std::string patch_index) const override;
     std::vector<std::string> list_patches() const override;
     nd::array<double, 3> read_array (std::string path) const override;
@@ -19,5 +21,5 @@ public:
     void write_header (patches2d::Database::Header header) const override;
     void write_block_size (std::array<int, 2> block_size) const override;
 private:
-    std::string chkpt;
+    juce::File chkpt;
 };

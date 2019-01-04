@@ -1,4 +1,3 @@
-#include "JuceHeader.h"
 #include <fstream>
 using namespace patches2d;
 
@@ -6,14 +5,22 @@ using namespace patches2d;
 
 
 // ============================================================================
-FileSystemSerializer::FileSystemSerializer (std::string chkpt) : chkpt(chkpt)
+bool FileSystemSerializer::looksLikeDatabase (File path)
+{
+    if (! path.isDirectory()) return false;
+    if (! path.getChildFile ("header.json").existsAsFile()) return false;
+    if (! path.getChildFile ("block_size.json").existsAsFile()) return false;
+    return true;
+}
+
+FileSystemSerializer::FileSystemSerializer (File chkpt) : chkpt(chkpt)
 {
 }
 
 std::vector<std::string> FileSystemSerializer::list_fields (std::string patch_index) const
 {
     auto res = std::vector<std::string>();
-    auto patch = File (chkpt).getChildFile (patch_index);
+    auto patch = chkpt.getChildFile (patch_index);
 
     for (auto d : patch.findChildFiles (File::findFiles, false))
     {
@@ -29,7 +36,7 @@ std::vector<std::string> FileSystemSerializer::list_patches() const
 {
     auto res = std::vector<std::string>();
 
-    for (auto d : File (chkpt).findChildFiles (File::findDirectories, false))
+    for (auto d : chkpt.findChildFiles (File::findDirectories, false))
     {
         res.push_back (d.getFileName().toStdString());
     }
@@ -38,20 +45,20 @@ std::vector<std::string> FileSystemSerializer::list_patches() const
 
 nd::array<double, 3> FileSystemSerializer::read_array (std::string path) const
 {
-    auto ifs = std::ifstream (File (chkpt).getChildFile (path).getFullPathName().toStdString());
+    auto ifs = std::ifstream (chkpt.getChildFile (path).getFullPathName().toStdString());
     auto str = std::string (std::istreambuf_iterator<char> (ifs), std::istreambuf_iterator<char>());
     return nd::array<double, 3>::loads (str);
 }
 
 std::array<int, 2> FileSystemSerializer::read_block_size() const
 {
-    auto j = JSON::parse (File (chkpt).getChildFile ("block_size.json"));
+    auto j = JSON::parse (chkpt.getChildFile ("block_size.json"));
     return {j["ni"], j["nj"]};
 }
 
 Database::Header FileSystemSerializer::read_header() const
 {
-    auto j = JSON::parse (File (chkpt).getChildFile ("header.json"));
+    auto j = JSON::parse (chkpt.getChildFile ("header.json"));
 
     if (! j.getDynamicObject())
     {
