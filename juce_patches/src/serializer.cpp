@@ -13,7 +13,7 @@ bool FileSystemSerializer::looksLikeDatabase (File path)
     return true;
 }
 
-FileSystemSerializer::FileSystemSerializer (File chkpt) : chkpt(chkpt)
+FileSystemSerializer::FileSystemSerializer (File chkpt) : chkpt (chkpt)
 {
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <map>
-#include "ndarray.hpp"
+#include <set>
 
 
 
@@ -217,8 +217,12 @@ public:
     void dump(const Serializer&) const;
 
 
-    /** Load a database using the given serialization scheme. */
-    static Database load(const Serializer&);
+    /**
+     * Load a database using the given serialization scheme. If the fields
+     * argument is empty, then all fields are loaded. Otherwise, only those
+     * fields are loaded and returned.
+     */
+    static Database load(const Serializer&, std::set<Field> fields={});
 
 
 private:

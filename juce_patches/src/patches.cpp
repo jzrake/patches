@@ -319,7 +319,7 @@ void Database::dump(const Serializer& ser) const
     }
 }
 
-Database Database::load(const Serializer& ser)
+Database Database::load(const Serializer& ser, std::set<Field> fields)
 {
     auto header = ser.read_header();
     auto blocks = ser.read_block_size();
@@ -329,8 +329,11 @@ Database Database::load(const Serializer& ser)
     {
         for (auto field : ser.list_fields(patch))
         {
-            auto ind = patch + "/" + field;
-            database.insert(parse_index(ind), ser.read_array(ind));
+            if (fields.empty() || fields.count(parse_field (field)))
+            {
+                auto ind = patch + "/" + field;
+                database.insert(parse_index(ind), ser.read_array(ind));
+            }
         }
     }
     return database;

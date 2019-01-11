@@ -20,6 +20,7 @@ public:
     void write_array (std::string path, const nd::array<double, 3>& patch) const override;
     void write_header (patches2d::Database::Header header) const override;
     void write_block_size (std::array<int, 2> block_size) const override;
+
 private:
     juce::File chkpt;
 };
