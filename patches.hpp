@@ -222,7 +222,7 @@ public:
      * argument is empty, then all fields are loaded. Otherwise, only those
      * fields are loaded and returned.
      */
-    static Database load(const Serializer&, std::set<Field> fields={});
+    static Database load(const Serializer&, std::set<Field> fields={}, std::function<bool()> bailout=nullptr);
 
 
 private:
