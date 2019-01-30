@@ -2,6 +2,7 @@
 #include <array>
 #include <map>
 #include <set>
+#include "ndarray.hpp"
 
 
 
@@ -253,8 +254,8 @@ private:
     }
 
     // ========================================================================
-    int ni;
-    int nj;
+    int ni = 0;
+    int nj = 0;
     Header header;
     std::map<Index, Array> patches;
     BoundaryValue boundary_value = nullptr;

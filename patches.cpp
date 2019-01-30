@@ -121,11 +121,6 @@ void Database::clear()
 
 void Database::commit(Index index, Array data, double rk_factor)
 {
-    if (location(index) != MeshLocation::cell)
-    {
-        throw std::invalid_argument("Can only commit cell data (for now)");
-    }
-
     auto target = patches.at(index);
 
     if (rk_factor == 0.0)
