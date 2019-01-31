@@ -30,6 +30,7 @@ std::string patches2d::to_string(Field field)
         case Field::face_area_i: return "face_area_i";
         case Field::face_area_j: return "face_area_j";
         case Field::conserved: return "conserved";
+        case Field::primitive: return "primitive";
     }
 }
 
@@ -63,6 +64,7 @@ Field patches2d::parse_field(std::string str)
     if (str == "face_area_i") return Field::face_area_i;
     if (str == "face_area_j") return Field::face_area_j;
     if (str == "conserved")   return Field::conserved;
+    if (str == "primitive")   return Field::primitive;
     throw std::invalid_argument("unknown field: " + str);
 }
 

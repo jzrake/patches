@@ -24,6 +24,7 @@ namespace patches2d {
         face_area_i,
         face_area_j,
         conserved,
+        primitive,
     };
 
 
