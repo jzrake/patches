@@ -22,6 +22,8 @@ namespace patches2d {
         vert_coords,
         face_area_i,
         face_area_j,
+        face_velocity_i,
+        face_velocity_j,
         conserved,
         primitive,
     };
